@@ -1,0 +1,31 @@
+body {
+    margin: 0;
+    overflow: hidden;
+}
+#layout {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+#three-canvas {
+    flex: 1;
+    display: block;
+    overflow-x: auto;
+}
+#ui-panel {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    height: 100%;
+    padding: 16px;
+    box-sizing: border-box;
+    background: #f0f0f0;
+    flex-shrink: 0;
+}
+#ui-panel-top {
+    flex: 1;
+    overflow-y: auto;
+}
+#ui-panel-bottom {
+    flex-shrink: 0;
+}
