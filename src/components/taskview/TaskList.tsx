@@ -1,18 +1,18 @@
-import './sidebar.css';
+import './taskview.css';
 
 type Props = {
-    roboPoints: [number, number, number][];
+    taskPoints: [number, number, number][];
     onAddPoint: () => void;
     onRemovePoint: () => void;
 };
 
-export function Sidebar({ roboPoints, onAddPoint, onRemovePoint }: Props) {
+export function TaskList({ taskPoints, onAddPoint, onRemovePoint }: Props) {
     return (
-        <div id="sidebar">
-            <h2>Robot Model</h2>
+        <div id="taskview">
+            <h2>Task</h2>
 
             <ul className="list">
-                {roboPoints.map((p, i) => (
+                {taskPoints.map((p, i) => (
                     <li key={i}>({p[0]}, {p[1]}, {p[2]})</li>
                 ))}
             </ul>

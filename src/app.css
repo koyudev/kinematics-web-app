@@ -86,3 +86,9 @@ button {
     height: 100%;
     display: flex;
 }
+
+#three-canvas-container {
+    position: relative;
+    flex: 1;
+}
+

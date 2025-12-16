@@ -1,7 +1,11 @@
 /* toolbar.css */
 
 #toolbar {
-    width: 100%;
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: auto;
     border-top: 1px solid #333;
     border-radius: 16px;
     box-sizing: border-box;

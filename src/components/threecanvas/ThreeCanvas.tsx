@@ -4,15 +4,16 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { buildAxisFrame } from '../../three/axisFrame';
-import { createXYPlane, createYZPlane } from './editorPlanes';
 
 export interface ThreeCanvasProps {
-    points: [number, number, number][];
+    roboPoints: [number, number, number][];
+    taskPoints: [number, number, number][];
     editorMode: boolean;
+    onInputPointChange: (point: [number, number, number]) => void;
     onPointComplete: (point: [number, number, number]) => void;
 }
 
-export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvasProps) {
+export function ThreeCanvas({ roboPoints, taskPoints, editorMode, onInputPointChange, onPointComplete }: ThreeCanvasProps) {
     // === React refs ===
     const mountRef = useRef<HTMLDivElement>(null);
     const meshesRef = useRef<THREE.Mesh[]>([]);
@@ -21,8 +22,8 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
     const sceneRef = useRef<THREE.Scene | null>(null);
     const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
     const orthoViewSize = 100;
-    let renderer: THREE.WebGLRenderer;
-    let labelRenderer: CSS2DRenderer;
+    const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+    const labelRendererRef = useRef<CSS2DRenderer | null>(null);
     let controls: OrbitControls;
 
     const xBounds: [number, number] = [-50, 50];
@@ -30,38 +31,41 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
     const zBounds: [number, number] = [-50, 50];
     const unit: number = 10;
 
-    // Three 内で保持するメッシュ配列
-    const pointMeshes: THREE.Mesh[] = [];
-
     // === 編集ステート ===
-    const xyPlaneMeshRef = useRef<THREE.Mesh | null>(null);
-    const yzPlaneMeshRef = useRef<THREE.Mesh | null>(null);
     const xyPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
     const yzPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(1, 0, 0), 0))
     const [stage, setStage] = useState<"xy" | "yz" | null>(null);
     const tempPointRef = useRef<THREE.Vector3>(new THREE.Vector3());
     const previewMeshRef = useRef<THREE.Mesh | null>(null);
+    const lineRef = useRef<THREE.Line | null>(null);
+    const previewLineRef = useRef<THREE.Line | null>(null);
     
-
-    function updateOrthoCamera(width: number, height: number) {
+    function resizeThreeCanvas() {
+        const mount = mountRef.current;
         const camera = cameraRef.current;
-        if (!camera) return;
+        const renderer = rendererRef.current;
+        const labelRenderer = labelRendererRef.current;
+        if (!mount || !camera || !renderer || !labelRenderer) return;
+
+        const width = mount.clientWidth;
+        const height = mount.clientHeight;
         const aspect = width / height;
 
-        camera.left   = -orthoViewSize * aspect;
-        camera.right  =  orthoViewSize * aspect;
-        camera.top    =  orthoViewSize;
-        camera.bottom = -orthoViewSize;
-
+        if (aspect >= 1) {
+            camera.top = orthoViewSize;
+            camera.bottom = -orthoViewSize;
+            camera.left = -orthoViewSize * aspect;
+            camera.right = orthoViewSize * aspect;
+        } else {
+            camera.left = -orthoViewSize;
+            camera.right = orthoViewSize;
+            camera.top = orthoViewSize / aspect;
+            camera.bottom = -orthoViewSize / aspect;
+        }
         camera.updateProjectionMatrix();
-    }
 
-    // ========== プレビュー用メッシュ ==========
-    function setupPreviewMesh() {
-        const geo = new THREE.SphereGeometry(0.3, 16, 16);
-        const mat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        previewMesh = new THREE.Mesh(geo, mat);
-        sceneRef.current?.add(previewMesh);
+        renderer.setSize(width, height);
+        labelRenderer.setSize(width, height);
     }
 
     // ========= カメラ切り替え ==========
@@ -92,15 +96,6 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
         return pos;
     }
 
-    function setupEditorPlanes() {
-        if (!sceneRef.current) return;
-
-        // XY 平面
-        xyPlaneMeshRef.current = createXYPlane(sceneRef.current, xBounds, yBounds);
-        // YZ 平面
-        yzPlaneMeshRef.current = createYZPlane(sceneRef.current, zBounds, yBounds);
-    }
-
     useEffect(() => {
         if (!mountRef.current) return;
 
@@ -108,31 +103,24 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xFFFFFF);
         sceneRef.current = scene;
-
-        const width = mountRef.current.clientWidth;
-        const height = mountRef.current.clientHeight;
         
         const camera = new THREE.OrthographicCamera(0, 0, 0, 0, 0.1, 1000);
         cameraRef.current = camera;
-        updateOrthoCamera(width, height);
-        renderer = new THREE.WebGLRenderer();
-        renderer.setSize(width, height);
-        mountRef.current.appendChild(renderer.domElement);
 
-        // ラベル用レンダラー
-        labelRenderer = new CSS2DRenderer();
-        labelRenderer.setSize(width, height);
-        labelRenderer.domElement.classList.add('label-renderer');
-        mountRef.current.appendChild(labelRenderer.domElement);
+        rendererRef.current = new THREE.WebGLRenderer();
+        mountRef.current.appendChild(rendererRef.current.domElement);
+
+        labelRendererRef.current = new CSS2DRenderer();
+        labelRendererRef.current.domElement.classList.add('label-renderer');
+        mountRef.current.appendChild(labelRendererRef.current.domElement);
+
+        resizeThreeCanvas();
 
         // 座標枠生成
         buildAxisFrame(scene, xBounds, yBounds, zBounds, unit);
 
-        // --- ここで editor planes を作る ---
-        setupEditorPlanes();
-
         // OrbitControls
-        controls = new OrbitControls(camera, renderer.domElement);
+        controls = new OrbitControls(camera, rendererRef.current.domElement);
         controls.mouseButtons = {
             LEFT: null,
             MIDDLE: THREE.MOUSE.DOLLY,
@@ -163,30 +151,19 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
         const animate = () => {
             requestAnimationFrame(animate);
             controls.update();
-            renderer.render(scene, camera);
-            labelRenderer.render(scene, camera);
+            rendererRef.current!.render(scene, camera);
+            labelRendererRef.current.render(scene, camera);
         };
         animate();
 
         // ★ リサイズ対応
-        const handleResize = () => {
-            if (!mountRef.current) return;
-
-            const width = mountRef.current.clientWidth;
-            const height = mountRef.current.clientHeight;
-
-            updateOrthoCamera(width, height);
-
-            renderer.setSize(width, height);
-            labelRenderer.setSize(width, height);
-        };
-        window.addEventListener('resize', handleResize);
+        window.addEventListener('resize', resizeThreeCanvas);
 
         // cleanup
         return () => {
-            window.removeEventListener('resize', handleResize);
             window.removeEventListener("keydown", onKeyDown);
             window.removeEventListener("keyup", onKeyUp);
+            window.removeEventListener('resize', resizeThreeCanvas);
             mountRef.current?.removeChild(renderer.domElement);
             mountRef.current?.removeChild(labelRenderer.domElement);
         };
@@ -195,22 +172,17 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
     // ==== editorMode の切り替え ====
     useEffect(() => {
         const scene = sceneRef.current;
-        if (!scene) return;
         const camera = cameraRef.current;
-        if (!camera) return;
+        if (!scene || !camera) return;
 
         if (!editorMode) {
             // 編集終了
             setStage(null);
             if (previewMeshRef.current) scene.remove(previewMeshRef.current);
-            xyPlaneMeshRef.current!.visible = false;
-            yzPlaneMeshRef.current!.visible = false;
             previewMeshRef.current = null;
             return;
         }
         // 編集開始
-        xyPlaneMeshRef.current!.visible = true;
-        yzPlaneMeshRef.current!.visible = false;
         setStage("xy");
         const previewMesh = new THREE.Mesh(
             new THREE.SphereGeometry(10, 16, 16),
@@ -233,6 +205,9 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
             if (stage === "xy") {
                 const pos = raycastToPlane(e, xyPlaneRef.current);
                 previewMesh.position.copy(pos);
+                onInputPointChange([
+                    pos.x, pos.y, pos.z
+                ]);
             }
 
             if (stage === "yz") {
@@ -240,6 +215,27 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
                 yzPlaneRef.current.constant = -tempPoint.x;
                 const pos = raycastToPlane(e, yzPlaneRef.current);
                 previewMesh.position.set(tempPoint.x, pos.y, pos.z);
+                onInputPointChange([
+                    pos.x, pos.y, pos.z
+                ]);
+
+                const a = tempPointRef.current;
+                const b = previewMesh.position;
+
+                const geometry = new THREE.BufferGeometry().setFromPoints([
+                    a.clone(),
+                    b.clone()
+                ]);
+
+                if (!previewLineRef.current) {
+                    const material = new THREE.LineBasicMaterial({ color: 0x00aa00 });
+                    const line = new THREE.Line(geometry, material);
+                    sceneRef.current?.add(line);
+                    previewLineRef.current = line;
+                } else {
+                    previewLineRef.current.geometry.dispose();
+                    previewLineRef.current.geometry = geometry;
+                }
             }
         }
 
@@ -295,7 +291,7 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
         const meshes = meshesRef.current;
 
         // 追加が必要な点
-        while (meshes.length < points.length) {
+        while (meshes.length < roboPoints.length) {
             const geometry = new THREE.SphereGeometry(0.2, 16, 16);
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const mesh = new THREE.Mesh(geometry, material);
@@ -304,17 +300,46 @@ export function ThreeCanvas({ points, editorMode, onPointComplete }: ThreeCanvas
         }
         
         // 削除が必要な点
-        while (meshes.length > points.length) {
+        while (meshes.length > roboPoints.length) {
             const removed = meshes.pop();
             if (removed) sceneRef.current.remove(removed);
         }
 
         // 座標の同期
-        points.forEach((p, i) => {
+        roboPoints.forEach((p, i) => {
             meshes[i].position.set(p[0], p[1], p[2]);
         });
         
-    }, [points]);
+    }, [roboPoints]);
+
+    useEffect(() => {
+        const scene = sceneRef.current;
+        if (!scene) return;
+
+        // 既存の線を削除
+        if (lineRef.current) {
+            scene.remove(lineRef.current);
+            lineRef.current.geometry.dispose();
+            lineRef.current = null;
+        }
+
+        if (roboPoints.length < 2) return;
+
+        // Vector3 配列に変換
+        const vertices = roboPoints.map(
+            p => new THREE.Vector3(p[0], p[1], p[2])
+        );
+
+        const geometry = new THREE.BufferGeometry().setFromPoints(vertices);
+        const material = new THREE.LineBasicMaterial({
+            color: 0x0000ff,
+            linewidth: 2 // ※ WebGL ではほぼ無効
+        });
+
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+        lineRef.current = line;
+    }, [roboPoints]);
 
     return (
         <div
