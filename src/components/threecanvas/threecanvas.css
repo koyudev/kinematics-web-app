@@ -15,3 +15,9 @@
     height: 100%;
     pointer-events: none;
 }
+
+.label {
+    color: black;
+    font-size: 16px;
+    pointer-events: none;
+}

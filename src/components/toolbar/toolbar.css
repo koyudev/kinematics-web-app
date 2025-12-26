@@ -32,13 +32,21 @@
 /* 数字入力 */
 .pointinput input {
     flex: 1;
-    padding: 2px 2px;
+    height: 44px;
+    padding: 8px;
     border: none;
+    box-sizing: border-box;
     border-radius: 8px;
     font-size: 16px;
     color: #fff;
     background: none;
     outline: none;
+    text-align: right;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
 }
 
 .pointinput input:focus {

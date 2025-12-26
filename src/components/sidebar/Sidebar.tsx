@@ -9,11 +9,11 @@ type Props = {
 export function Sidebar({ roboPoints, onAddPoint, onRemovePoint }: Props) {
     return (
         <div id="sidebar">
-            <h2>Robot Model</h2>
+            <h2>ロボット構造</h2>
 
             <ul className="list">
                 {roboPoints.map((p, i) => (
-                    <li key={i}>({p[0]}, {p[1]}, {p[2]})</li>
+                    <li key={i}>({p[0].toFixed(2)}, {p[1].toFixed(2)}, {p[2].toFixed(2)})</li>
                 ))}
             </ul>
             <div className="list-tools">

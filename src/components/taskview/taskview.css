@@ -1,11 +1,9 @@
 /* taskview.css */
 
 #taskview {
-    margin: 4px;
     width: 300px;
     box-sizing: border-box;
     border: 1px solid #333;
-    border-radius: 16px;
     padding: 8px;
     color: white;
     background-color: #222;
@@ -14,27 +12,11 @@
 }
 
 /* タイトル (Robot Settings / Task Points) */
-#sidebar h2 {
+#taskview h2 {
     margin: 8px 0 12px 0;
     font-size: 32px;
 }
 
-/* 追加 / 削除 ボタンのエリア */
-.list-tools {
-    display: flex;
-    gap: 8px;
-}
-
-.list-tools button {
-    flex: 1;
-    padding: 8px 0;
-    background-color: #444;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    border-radius: 8px;
-    font-size: 14px;
-}
 
 /* 下のリスト (追加された点の一覧) */
 .list {

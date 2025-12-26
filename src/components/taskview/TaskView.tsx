@@ -9,7 +9,7 @@ type Props = {
 export function TaskList({ taskPoints, onAddPoint, onRemovePoint }: Props) {
     return (
         <div id="taskview">
-            <h2>Task</h2>
+            <h2>操作</h2>
 
             <ul className="list">
                 {taskPoints.map((p, i) => (
