@@ -1,8 +1,9 @@
 import './taskview.css';
+import { Task } from '../../types/task';
 import { Plus, Minus } from 'lucide-react'
 
 type Props = {
-    taskPoints: [number, number, number][];
+    taskPoints: Task[];
     onAddPoint: () => void;
     onRemovePoint: () => void;
 };
@@ -24,9 +25,9 @@ export function TaskList({ taskPoints, onAddPoint, onRemovePoint }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {taskPoints.map(([x, y, z], i) => (
+                        {taskPoints.map(({ jointIndex, targetPosition: [x, y, z]}, i) => (
                             <tr key={i}>
-                                <td>{i + 1}</td>
+                                <td>{jointIndex + 1}</td>
                                 <td>{x.toFixed(2)}</td>
                                 <td>{y.toFixed(2)}</td>
                                 <td>{z.toFixed(2)}</td>

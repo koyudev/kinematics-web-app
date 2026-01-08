@@ -2,19 +2,19 @@
 
 import React, { use, useRef, useState, useEffect } from 'react';
 
-import { RoboView, Sidebar } from './components/roboview/RoboView';
+import { RoboView } from './components/roboview/RoboView';
 import { Toolbar} from './components/toolbar/Toolbar';
 import { ThreeCanvas } from './components/threecanvas/ThreeCanvas';
 import { TaskList } from './components/taskview/TaskView';
+import { Point } from './types/point';
+import { Task } from './types/task';
 import './app.css';
-
-export type Point = [number, number, number];
 
 export function App() {
     type Target = "robo" | "task" | null;
     // 点データ
-    const [roboPoints, setRoboPoints] = useState<[number, number, number][]>([]);
-    const [taskPoints, setTaskPoints] = useState<[number, number, number][]>([]);
+    const [robotJoints, setRobotJoints] = useState<Point[]>([]);
+    const [tasks, setTasks] = useState<Task[]>([]);
 
     // 編集モード
     const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -23,6 +23,7 @@ export function App() {
     const [editingAxis, setEditingAxis] = useState<"x" | "y" | "z" | null>(null);
 
     const [inputPoint, setInputPoint] = useState<Point>([0, 0, 0]);
+    const [selectedJointIndex, setSelectedJointIndex] = useState<number>(0);
     const inputPointRef = useRef<Point>(inputPoint);
     useEffect(() => {
         inputPointRef.current = inputPoint;
@@ -38,9 +39,15 @@ export function App() {
     const confirmEditing = () => {
         const inputPoint = inputPointRef.current;
         if (target === "robo") {
-            setRoboPoints(prev => [...prev, inputPoint]);
+            setRobotJoints(prev => [...prev, inputPoint]);
         } else if (target === "task") {
-            setTaskPoints(prev => [...prev, inputPoint]);
+            const selectedIndex = selectedJointIndex !== null ? selectedJointIndex : (robotJoints.length - 1);
+            setTasks(prev => [...prev, 
+                {
+                    jointIndex: selectedIndex,
+                    targetPosition: inputPoint
+                }
+        ]);
         }
         setTarget(null);
         setIsEditing(false);
@@ -52,26 +59,28 @@ export function App() {
 
     const removePoint = (target: Target) => {
         if (target === "robo") {
-            setRoboPoints(prev => prev.slice(0, -1));
+            setRobotJoints(prev => prev.slice(0, -1));
         } else if (target === "task") {
-            setTaskPoints(prev => prev.slice(0, -1));
+            setTasks(prev => prev.slice(0, -1));
         }
     };
     return (
         <div id="app-container">
             <RoboView
-                roboPoints={roboPoints}
+                roboPoints={robotJoints}
                 onAddPoint={() => startEditing("robo")}
                 onRemovePoint={() => removePoint("robo")}
             />
             <div id="three-canvas-container">
                 <ThreeCanvas
-                    roboPoints={roboPoints} 
-                    taskPoints={taskPoints}
+                    roboPoints={robotJoints} 
+                    tasks={tasks}
                     isEditing={isEditing} 
                     target={target}
                     inputPoint={inputPoint}
                     onInputPointChange={setInputPoint}
+                    selectedJointIndex={selectedJointIndex}
+                    setSelectedJointIndex={setSelectedJointIndex}
                     onInputPointConfirm={confirmEditing}
                 />
                 {isEditing && (
@@ -88,7 +97,7 @@ export function App() {
             </div>
 
             <TaskList
-                taskPoints={taskPoints}
+                taskPoints={tasks}
                 onAddPoint={() => startEditing("task")}
                 onRemovePoint={() => removePoint("task")}
             />
