@@ -188,6 +188,7 @@ export function App() {
                     results={results}
                     onAddPoint={() => startEditing("robo")}
                     onRemovePoint={() => removePoint("robo")}
+                    isEditing = {isEditing}
                     isShowingResults={isShowingResults}
                     setIsShowingResults={setIsShowingResults}
                 />
@@ -206,7 +207,7 @@ export function App() {
                         setSelectedJointIndex={setSelectedJointIndex}
                         onInputPointConfirm={confirmEditing}
                     />
-                    {isEditing ? (
+                    {isEditing && (
                         <Toolbar
                             point={inputPoint}
                             onFocusX={() => {setEditingAxis("x");}}
@@ -216,7 +217,8 @@ export function App() {
                             onConfirm={confirmEditing}
                             onCancel={cancelEditing}
                         />
-                    ) : (
+                    )}
+                    {!isEditing && !isShowingResults && (
                         <button className="solve-button" onClick={handleSolveKinematics}>
                             実行
                         </button>
@@ -227,6 +229,7 @@ export function App() {
                     tasks={tasks}
                     onAddPoint={() => startEditing("task")}
                     onRemovePoint={() => removePoint("task")}
+                    isEditing={isEditing}
                 />
             </main>
             

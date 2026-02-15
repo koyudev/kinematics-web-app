@@ -12,9 +12,10 @@ type Props = {
     tasks: Task[];
     onAddPoint: () => void;
     onRemovePoint: () => void;
+    isEditing: boolean;
 };
 
-export function TaskListView({ tasks, onAddPoint, onRemovePoint }: Props) {
+export function TaskListView({ tasks, onAddPoint, onRemovePoint, isEditing }: Props) {
     return (
         <div className="sidebar task-list-view">
             <h2>タスク設定</h2>
@@ -42,14 +43,16 @@ export function TaskListView({ tasks, onAddPoint, onRemovePoint }: Props) {
                     </tbody>
                 </table>
             </div>
-
-            <div className="dual-controls list-controls">
-                <button onClick={onAddPoint}><Plus /></button>
-                <button 
-                    onClick={onRemovePoint}
-                    disabled={tasks.length === 0}
-                ><Minus /></button>
-            </div>
+            
+            {!isEditing && (
+                <div className="dual-controls list-controls">
+                    <button onClick={onAddPoint}><Plus /></button>
+                    <button 
+                        onClick={onRemovePoint}
+                        disabled={tasks.length === 0}
+                    ><Minus /></button>
+                </div>
+            )}
         </div>
     );
 }

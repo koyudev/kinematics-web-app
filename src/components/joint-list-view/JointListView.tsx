@@ -13,11 +13,12 @@ type Props = {
     results: [number, number, number][];
     onAddPoint: () => void;
     onRemovePoint: () => void;
+    isEditing: boolean;
     isShowingResults: boolean;
     setIsShowingResults: (value: boolean) => void;
 };
 
-export function JointListView({ joints, results, onAddPoint, onRemovePoint, isShowingResults, setIsShowingResults}: Props) {
+export function JointListView({ joints, results, onAddPoint, onRemovePoint, isEditing, isShowingResults, setIsShowingResults}: Props) {
     const displayJoints = isShowingResults ? results : joints;
 
     return (
@@ -25,7 +26,7 @@ export function JointListView({ joints, results, onAddPoint, onRemovePoint, isSh
             <div className="sidebar-header">
                 <h2>{isShowingResults ? '計算結果' : 'ジョイント設定'}</h2>
 
-                {results.length !== 0 && (
+                {!isEditing && results.length !== 0 && (
                     <div className="dual-controls navigation-controls">
                     <button
                         type="button"
@@ -73,15 +74,17 @@ export function JointListView({ joints, results, onAddPoint, onRemovePoint, isSh
                     </tbody>
                 </table>
             </div>
-            <div className="dual-controls list-controls">
-                <button onClick={onAddPoint}><Plus /></button>
-                <button 
-                    onClick={onRemovePoint}
-                    disabled={joints.length === 0}
-                >
-                    <Minus />
-                </button>
-            </div>
+            {!isEditing && !isShowingResults && (
+                <div className="dual-controls list-controls">
+                    <button onClick={onAddPoint}><Plus /></button>
+                    <button 
+                        onClick={onRemovePoint}
+                        disabled={joints.length === 0}
+                    >
+                        <Minus />
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
