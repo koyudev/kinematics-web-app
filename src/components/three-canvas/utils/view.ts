@@ -17,7 +17,7 @@ function animateCameraTo(
     targetPosition: THREE.Vector3,
     targetLookAt: THREE.Vector3,
     targetZoom: number,
-    duration: number = 400
+    duration: number = 600
 ) {
     const startPosition = camera.position.clone();
     const startTarget = controls.target.clone();
