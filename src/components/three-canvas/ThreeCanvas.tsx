@@ -7,6 +7,7 @@ import { Appearance } from '../../appearance/appearance';
 import { createThreeColorPalette, updateThreeAppearance } from './utils/appearance';
 import { Point } from '../../types/point';
 import { Task } from '../../types/task';
+import { Step } from '../../types/step';
 
 import { usePreview } from './hooks/usePreview';
 import { useJointMeshes } from './hooks/useJointMeshes';
@@ -25,16 +26,18 @@ export interface ThreeCanvasProps {
     tasks: Task[];
     results: Point[];
     isEditing: boolean;
+    step: Step;
     isShowingResults: boolean;
     target: "robo" | "task" | null;
     inputPoint: Point;
     selectedJointIndex: number | null;
     onInputPointChange: (point: Point) => void;
+    setStep: (s: Step) => void;
     setSelectedJointIndex: (index: number | null) => void;
     onInputPointConfirm: () => void;
 }
 
-export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, isShowingResults, target, inputPoint, selectedJointIndex, onInputPointChange, setSelectedJointIndex, onInputPointConfirm }: ThreeCanvasProps) {
+export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, step, isShowingResults, target, inputPoint, selectedJointIndex, onInputPointChange, setStep, setSelectedJointIndex, onInputPointConfirm }: ThreeCanvasProps) {
     const [colorPalette, setColorPalette] = useState(() => createThreeColorPalette(appearance));
     const displayJoints = isShowingResults ? results : joints;
 
@@ -55,8 +58,6 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, isS
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const labelRendererRef = useRef<CSS2DRenderer | null>(null);
     const controlsRef = useRef<OrbitControls | null>(null);
-
-    const [step, setStep] = useState<"jointindex" | "xy" | "z" | null>(null);
 
     const xyPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0));
     const yzPlaneRef = useRef<THREE.Plane>(new THREE.Plane(new THREE.Vector3(1, 0, 0), 0));

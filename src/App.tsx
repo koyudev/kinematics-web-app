@@ -6,6 +6,7 @@ import React, { useRef, useState, useEffect } from 'react';
 // Types
 import { Point } from './types/point';
 import { Task } from './types/task';
+import { Step } from './types/step';
 
 // API
 import { register, login } from './api/authentication';
@@ -45,8 +46,7 @@ export function App() {
     // 編集モード
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [target, setTarget] = useState<Target>(null);
-
-    const [editingAxis, setEditingAxis] = useState<"x" | "y" | "z" | null>(null);
+    const [step, setStep] = useState<Step>(null);
 
     const [inputPoint, setInputPoint] = useState<Point>([0, 0, 0]);
     const [selectedJointIndex, setSelectedJointIndex] = useState<number | null>(null);
@@ -199,10 +199,12 @@ export function App() {
                         tasks={tasks}
                         results={results}
                         isEditing={isEditing} 
+                        step={step}
                         isShowingResults={isShowingResults}
                         target={target}
                         inputPoint={inputPoint}
                         onInputPointChange={setInputPoint}
+                        setStep={setStep}
                         selectedJointIndex={selectedJointIndex}
                         setSelectedJointIndex={setSelectedJointIndex}
                         onInputPointConfirm={confirmEditing}
@@ -210,9 +212,9 @@ export function App() {
                     {isEditing && (
                         <Toolbar
                             point={inputPoint}
-                            onFocusX={() => {setEditingAxis("x");}}
-                            onFocusY={() => {setEditingAxis("y");}}
-                            onFocusZ={() => {setEditingAxis("z");}}
+                            onFocusX={() => {setStep("xy");}}
+                            onFocusY={() => {setStep("xy");}}
+                            onFocusZ={() => {setStep("z");}}
                             onChange={setInputPoint}
                             onConfirm={confirmEditing}
                             onCancel={cancelEditing}
