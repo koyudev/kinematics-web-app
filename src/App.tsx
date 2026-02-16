@@ -121,7 +121,11 @@ export function App() {
 
     // 編集開始
     const startEditing = (target: Target) => {
-        setInputPoint([0, 0, 0]);
+        if (target === "robo" && robotJoints.length > 0) {
+            setInputPoint(robotJoints[robotJoints.length - 1]);
+        } else {
+            setInputPoint([0, 0, 0]);
+        }
         setTarget(target);
         setIsEditing(true);
     };
