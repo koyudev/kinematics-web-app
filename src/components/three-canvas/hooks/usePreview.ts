@@ -1,9 +1,11 @@
 // src/components/threecanvas/hooks/usePreview.ts
 import * as THREE from 'three';
 import { Point } from '../../../types/point';
+import { Step } from '../../../types/step';
 import { useEffect } from 'react';
 
 interface Props {
+    step: Step;
     inputPoint: Point;
     target: "robo" | "task" | null;
     isEditing: boolean;
@@ -17,6 +19,7 @@ interface Props {
 }
 
 export function usePreview({
+    step,
     inputPoint,
     target,
     isEditing,
@@ -59,7 +62,7 @@ export function usePreview({
             previewLineRef.current.geometry.dispose();
             previewLineRef.current.geometry = geometry;
         }
-    }, [inputPoint, isEditing, target, roboMeshesRef, previewMeshRef, previewLineRef, sceneRef]);
+    }, [inputPoint, isEditing, target, roboMeshesRef, previewMeshRef, previewLineRef, sceneRef, step]);
 
     // ---- hover sphere ----
     useEffect(() => {

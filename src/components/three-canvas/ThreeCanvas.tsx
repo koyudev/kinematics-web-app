@@ -199,10 +199,10 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, ste
         if (!scene || !camera || !controls) return;
         
         if (step === null) {
+            xyPlaneRef.current.constant = 0;
+            yzPlaneRef.current.constant = 0;
             if (previewMeshRef.current) {
-                scene.remove(previewMeshRef.current);
-                previewMeshRef.current.geometry.dispose();
-                previewMeshRef.current = null;
+                previewMeshRef.current.visible = false;
             }
             if (previewLineRef.current) {
                 scene.remove(previewLineRef.current);
@@ -214,13 +214,17 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, ste
             }
             view.reset(bounds, camera, controls);
         } else if (step === "xy") {
-            const previewMesh = new THREE.Mesh(
-                new THREE.SphereGeometry(sphereRadius, 32, 16),
-                new THREE.MeshBasicMaterial({ color: colorPalette.preview })
-            );
-            previewMesh.userData.color = "preview"
-            scene.add(previewMesh);
-            previewMeshRef.current = previewMesh;
+            if (!previewMeshRef.current) {
+                const previewMesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(sphereRadius, 32, 16),
+                    new THREE.MeshBasicMaterial({ color: colorPalette.preview })
+                );
+                previewMesh.userData.color = "preview";
+                scene.add(previewMesh);
+                previewMeshRef.current = previewMesh;
+            } else {
+                previewMeshRef.current.visible = true;
+            }
             view.setFront(bounds, camera, controls);
         } else if (step === "z") {
             view.setRight(bounds, camera, controls);
@@ -270,6 +274,9 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, ste
         function onClick(event: MouseEvent) {
             if (step === "jointindex") {
                 if (selectedJointIndex === null) return;
+                const point = joints[selectedJointIndex];
+                xyPlaneRef.current.constant = -point[2];
+                onInputPointChange(point);
                 setStep("xy");
                 return;
             }
@@ -289,6 +296,7 @@ export function ThreeCanvas({ appearance, joints, tasks, results, isEditing, ste
     }, [step, inputPoint, selectedJointIndex]);
 
     usePreview({
+        step,
         inputPoint,
         target,
         isEditing,
